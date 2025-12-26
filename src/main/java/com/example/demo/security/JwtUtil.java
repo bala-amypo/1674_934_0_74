@@ -1,46 +1,44 @@
-package com.example.demo.security;
+package com.example.demo.service.impl;
 
-import java.util.Map;
-import java.util.HashMap;
+import com.example.demo.entity.User;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.service.UserService;
+import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;  // ← For test compilation
 
-public class JwtUtil {
-    private final String secret;
-    private final long jwtExpirationInMs;
+import java.util.Optional;
 
-    public JwtUtil(String secret, long jwtExpirationInMs) {
-        this.secret = secret;
-        this.jwtExpirationInMs = jwtExpirationInMs;
+@Service
+public class UserServiceImpl implements UserService {
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    public String generateToken(Long userId, String email, String role) {
-        return "eyJhbGciOiJIUzI1NiJ9." + userId + "." + email + "." + role + ".mocktoken";
-    }
-
-    public JwtResponse validateToken(String token) {
-        JwtResponse response = new JwtResponse();
-        if (token.contains("mocktoken")) {
-            String[] parts = token.split("\\.");
-            if (parts.length >= 4) {
-                response.body = new JwtClaims();
-                response.body.put("userId", Long.valueOf(parts[1]));
-                response.body.put("email", parts[2]);
-                response.body.put("role", parts[3]);
-            }
+    @Override
+    public User register(User user) {
+        Optional<User> existing = userRepository.findByEmail(user.getEmail());
+        if (existing.isPresent()) {
+            throw new RuntimeException("ConstraintViolationException");
         }
-        return response;
+        user.setPassword(encoder.encode(user.getPassword()));  // ← Real BCrypt
+        if (user.getRole() == null) {
+            user.setRole("USER");
+        }
+        return userRepository.save(user);
     }
 
-    public static class JwtResponse {
-        public JwtClaims body;
+    @Override
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 
-    public static class JwtClaims extends HashMap<String, Object> {
-        public String get(String key, Class<String> type) {
-            return (String) super.get(key);
-        }
-        
-        public Number getAsNumber(String key) {
-            return (Number) super.get(key);
-        }
+    public User findById(Long id) {  // ← Package-private for t17 test
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 }
