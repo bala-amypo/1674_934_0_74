@@ -12,10 +12,12 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder encoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    // ✅ MATCHES TEST: UserServiceImpl(UserRepository, BCryptPasswordEncoder)
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder encoder) {
         this.userRepository = userRepository;
+        this.encoder = encoder;
     }
 
     @Override

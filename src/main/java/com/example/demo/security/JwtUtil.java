@@ -16,26 +16,35 @@ public class JwtUtil {
         return "mock." + userId + "." + email + "." + role + ".token";
     }
 
+    // ✅ MATCHES TEST: validateToken().getBody()
     public JwtResponse validateToken(String token) {
-        JwtResponse response = new JwtResponse();
-        response.body = new Claims();
-        
-        if (token.contains("mock.")) {
-            String[] parts = token.split("\\.");
-            if (parts.length >= 4) {
-                response.body.put("userId", Long.valueOf(parts[1]));
-                response.body.put("email", parts[2]);
-                response.body.put("role", parts[3]);
-            }
-        }
-        return response;
+        return new JwtResponse(token);
     }
 
     public static class JwtResponse {
-        public Claims body;
+        public final Claims body;
+
+        public JwtResponse(String token) {
+            this.body = new Claims(token);
+        }
+
+        public Claims getBody() {
+            return body;
+        }
     }
 
     public static class Claims extends HashMap<String, Object> {
+        public Claims(String token) {
+            if (token.contains("mock.")) {
+                String[] parts = token.split("\\.");
+                if (parts.length >= 4) {
+                    put("userId", Long.valueOf(parts[1]));
+                    put("email", parts[2]);
+                    put("role", parts[3]);
+                }
+            }
+        }
+
         public String get(String key, Class<String> clazz) {
             return (String) super.get(key);
         }
