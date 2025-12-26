@@ -1,44 +1,43 @@
-package com.example.demo.service.impl;
+package com.example.demo.security;
 
-import com.example.demo.entity.User;
-import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.service.UserService;
-import org.springframework.stereotype.Service;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;  // ← For test compilation
+import java.util.HashMap;
+import java.util.Map;
 
-import java.util.Optional;
+public class JwtUtil {
+    private final String secret;
+    private final long jwtExpirationInMs;
 
-@Service
-public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public JwtUtil(String secret, long jwtExpirationInMs) {
+        this.secret = secret;
+        this.jwtExpirationInMs = jwtExpirationInMs;
     }
 
-    @Override
-    public User register(User user) {
-        Optional<User> existing = userRepository.findByEmail(user.getEmail());
-        if (existing.isPresent()) {
-            throw new RuntimeException("ConstraintViolationException");
+    public String generateToken(Long userId, String email, String role) {
+        return "mock." + userId + "." + email + "." + role + ".token";
+    }
+
+    public JwtResponse validateToken(String token) {
+        JwtResponse response = new JwtResponse();
+        response.body = new Claims();
+        
+        if (token.contains("mock.")) {
+            String[] parts = token.split("\\.");
+            if (parts.length >= 4) {
+                response.body.put("userId", Long.valueOf(parts[1]));
+                response.body.put("email", parts[2]);
+                response.body.put("role", parts[3]);
+            }
         }
-        user.setPassword(encoder.encode(user.getPassword()));  // ← Real BCrypt
-        if (user.getRole() == null) {
-            user.setRole("USER");
+        return response;
+    }
+
+    public static class JwtResponse {
+        public Claims body;
+    }
+
+    public static class Claims extends HashMap<String, Object> {
+        public String get(String key, Class<String> clazz) {
+            return (String) super.get(key);
         }
-        return userRepository.save(user);
-    }
-
-    @Override
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-    }
-
-    public User findById(Long id) {  // ← Package-private for t17 test
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 }

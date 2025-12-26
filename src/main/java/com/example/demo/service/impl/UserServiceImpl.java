@@ -4,6 +4,7 @@ import com.example.demo.entity.User;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -11,6 +12,7 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -22,7 +24,7 @@ public class UserServiceImpl implements UserService {
         if (existing.isPresent()) {
             throw new RuntimeException("ConstraintViolationException");
         }
-        user.setPassword("hashed_" + user.getPassword());  // Mock hash for t02
+        user.setPassword(encoder.encode(user.getPassword()));
         if (user.getRole() == null) {
             user.setRole("USER");
         }
@@ -35,7 +37,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 
-    public User findById(Long id) {  // Package-private for test t17
+    public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
