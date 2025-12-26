@@ -12,9 +12,18 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder encoder;
 
+    // ✅ TEST CONSTRUCTOR (used by TransportRouteOptimizationTest @BeforeClass)
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder encoder) {
+        this.userRepository = userRepository;
+        this.encoder = encoder;
+    }
+
+    // ✅ SPRING BOOT RUNTIME CONSTRUCTOR (single arg)
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
+        this.encoder = new BCryptPasswordEncoder();
     }
 
     @Override
@@ -23,8 +32,6 @@ public class UserServiceImpl implements UserService {
         if (existing.isPresent()) {
             throw new RuntimeException("ConstraintViolationException");
         }
-        // ✅ MANUAL BCrypt - NO BEAN DEPENDENCY
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         user.setPassword(encoder.encode(user.getPassword()));
         if (user.getRole() == null) {
             user.setRole("USER");
