@@ -5,11 +5,11 @@ import lombok.*;
 
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class User {
+public class Location {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
     private String name;
-    private String email;
-    private String password;
-    private String role;
+    private Double latitude;
+    private Double longitude;
 }
