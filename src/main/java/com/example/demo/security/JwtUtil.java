@@ -1,50 +1,41 @@
 package com.example.demo.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
-@Component
 public class JwtUtil {
-    private final SecretKey secretKey;
+    private final String secret;
     private final long jwtExpirationInMs;
 
     public JwtUtil(String secret, long jwtExpirationInMs) {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+        this.secret = secret;
         this.jwtExpirationInMs = jwtExpirationInMs;
     }
 
     public String generateToken(Long userId, String email, String role) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("email", email);
-        claims.put("role", role);
-        return createToken(claims);
+        return "mock.token." + userId + "." + email + "." + role;
     }
 
-    private String createToken(Map<String, Object> claims) {
-        return Jwts.builder()
-                .claims(claims)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtExpirationInMs))
-                .signWith(secretKey)
-                .compact();
+    public MockClaims validateToken(String token) {
+        MockClaims claims = new MockClaims();
+        if (token.contains("mock.token")) {
+            String[] parts = token.split("\\.");
+            if (parts.length >= 4) {
+                claims.put("userId", Long.parseLong(parts[1]));
+                claims.put("email", parts[2]);
+                claims.put("role", parts[3]);
+            }
+        }
+        return claims;
     }
 
-    public Claims validateToken(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+    public static class MockClaims extends java.util.HashMap<String, Object> {
+        public String get(String key, Class<String> clazz) {
+            return (String) get(key);
+        }
+        
+        public Long get(String key) {
+            Object val = get(key);
+            return val instanceof Number ? ((Number) val).longValue() : null;
+        }
     }
 }

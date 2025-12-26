@@ -36,12 +36,11 @@ public class RouteOptimizationServiceImpl implements RouteOptimizationService {
         
         double fuelUsage = distanceKm / shipment.getVehicle().getFuelEfficiency();
 
-        RouteOptimizationResult result = RouteOptimizationResult.builder()
-                .shipment(shipment)
-                .optimizedDistanceKm(distanceKm)
-                .estimatedFuelUsageL(fuelUsage)
-                .generatedAt(LocalDateTime.now())
-                .build();
+        RouteOptimizationResult result = new RouteOptimizationResult();
+        result.setShipment(shipment);
+        result.setOptimizedDistanceKm(distanceKm);
+        result.setEstimatedFuelUsageL(fuelUsage);
+        result.setGeneratedAt(LocalDateTime.now());
 
         return resultRepository.save(result);
     }
