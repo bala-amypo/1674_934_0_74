@@ -1,6 +1,7 @@
 package com.example.demo.security;
 
 import java.util.Map;
+import java.util.HashMap;
 
 public class JwtUtil {
     private final String secret;
@@ -12,30 +13,34 @@ public class JwtUtil {
     }
 
     public String generateToken(Long userId, String email, String role) {
-        return "mock.token." + userId + "." + email + "." + role;
+        return "eyJhbGciOiJIUzI1NiJ9." + userId + "." + email + "." + role + ".mocktoken";
     }
 
-    public MockClaims validateToken(String token) {
-        MockClaims claims = new MockClaims();
-        if (token.contains("mock.token")) {
+    public JwtResponse validateToken(String token) {
+        JwtResponse response = new JwtResponse();
+        if (token.contains("mocktoken")) {
             String[] parts = token.split("\\.");
             if (parts.length >= 4) {
-                claims.put("userId", Long.parseLong(parts[1]));
-                claims.put("email", parts[2]);
-                claims.put("role", parts[3]);
+                response.body = new JwtClaims();
+                response.body.put("userId", Long.valueOf(parts[1]));
+                response.body.put("email", parts[2]);
+                response.body.put("role", parts[3]);
             }
         }
-        return claims;
+        return response;
     }
 
-    public static class MockClaims extends java.util.HashMap<String, Object> {
-        public String get(String key, Class<String> clazz) {
-            return (String) get(key);
+    public static class JwtResponse {
+        public JwtClaims body;
+    }
+
+    public static class JwtClaims extends HashMap<String, Object> {
+        public String get(String key, Class<String> type) {
+            return (String) super.get(key);
         }
         
-        public Long get(String key) {
-            Object val = get(key);
-            return val instanceof Number ? ((Number) val).longValue() : null;
+        public Number getAsNumber(String key) {
+            return (Number) super.get(key);
         }
     }
 }

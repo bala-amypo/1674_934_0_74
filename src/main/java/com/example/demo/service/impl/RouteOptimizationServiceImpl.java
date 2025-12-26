@@ -26,14 +26,12 @@ public class RouteOptimizationServiceImpl implements RouteOptimizationService {
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Shipment not found with id: " + shipmentId));
 
-        // Haversine distance approximation (degrees to km)
         double lat1 = shipment.getPickupLocation().getLatitude();
         double lon1 = shipment.getPickupLocation().getLongitude();
         double lat2 = shipment.getDropLocation().getLatitude();
         double lon2 = shipment.getDropLocation().getLongitude();
         
-        double distanceKm = Math.hypot(lat2 - lat1, lon2 - lon1) * 111.32; // ~km per degree
-        
+        double distanceKm = Math.hypot(lat2 - lat1, lon2 - lon1) * 111.32;
         double fuelUsage = distanceKm / shipment.getVehicle().getFuelEfficiency();
 
         RouteOptimizationResult result = new RouteOptimizationResult();
