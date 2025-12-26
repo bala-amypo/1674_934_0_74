@@ -12,12 +12,9 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder encoder;
 
-    // ✅ MATCHES TEST: UserServiceImpl(UserRepository, BCryptPasswordEncoder)
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder encoder) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.encoder = encoder;
     }
 
     @Override
@@ -26,6 +23,8 @@ public class UserServiceImpl implements UserService {
         if (existing.isPresent()) {
             throw new RuntimeException("ConstraintViolationException");
         }
+        // ✅ MANUAL BCrypt - NO BEAN DEPENDENCY
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         user.setPassword(encoder.encode(user.getPassword()));
         if (user.getRole() == null) {
             user.setRole("USER");
