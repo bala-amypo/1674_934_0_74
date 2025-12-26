@@ -14,13 +14,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder;
 
-    // ✅ TEST CONSTRUCTOR (used by TransportRouteOptimizationTest @BeforeClass)
+    // ✅ TEST: TransportRouteOptimizationTest @BeforeClass
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder encoder) {
         this.userRepository = userRepository;
         this.encoder = encoder;
     }
 
-    // ✅ SPRING BOOT RUNTIME CONSTRUCTOR (single arg)
+    // ✅ SPRING BOOT: Injects UserRepository
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
         this.encoder = new BCryptPasswordEncoder();
